@@ -72,6 +72,7 @@ Edita `.env` y rellena:
 | `SUPABASE_PUBLISHABLE_KEY` | La clave anon (pública) |
 | `SUPABASE_SERVICE_ROLE_KEY` | La clave service_role (PRIVADA, sólo backend) |
 | `ADMIN_EMAILS` | Lista de correos que tendrán rol admin (separados por coma) |
+| `STOCK_INFINITE` | `true` desactiva el control de stock (no valida disponibilidad ni descuenta). `false` usa el stock de cada producto |
 
 ### 2. Crear las tablas y políticas en Supabase
 

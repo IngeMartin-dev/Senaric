@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../Config/env.php';
 require_once __DIR__ . '/../Core/Session.php';
 require_once __DIR__ . '/../Core/Sanitizer.php';
 require_once __DIR__ . '/../Core/Auth.php'; // define HttpException
@@ -17,6 +18,15 @@ require_once dirname(__DIR__) . '/Helpers/view.php';
 final class CartService
 {
     private const SESSION_KEY = 'cart.items';
+
+    /**
+     * Con STOCK_INFINITE=true el carrito ignora la disponibilidad: cualquier
+     * cantidad (hasta 99 por línea) es aceptable.
+     */
+    public static function stockIsInfinite(): bool
+    {
+        return Env::bool('STOCK_INFINITE');
+    }
 
     public static function all(): array
     {
@@ -45,7 +55,7 @@ final class CartService
                 break;
             }
         }
-        if ($inCart + $quantity > $stock) {
+        if (!self::stockIsInfinite() && $inCart + $quantity > $stock) {
             throw new HttpException(409, sprintf(
                 'No hay suficiente stock para "%s". Disponible: %d.',
                 (string) ($product['name'] ?? 'este producto'),
@@ -80,7 +90,7 @@ final class CartService
                 throw new HttpException(404, 'Este producto ya no está disponible.');
             }
             $stock = (int) ($product['stock'] ?? 0);
-            if ($quantity > $stock) {
+            if (!self::stockIsInfinite() && $quantity > $stock) {
                 throw new HttpException(409, sprintf(
                     'No hay suficiente stock para "%s". Disponible: %d.',
                     (string) ($product['name'] ?? 'este producto'),

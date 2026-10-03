@@ -329,7 +329,7 @@
             tr.innerHTML = `
               <td>${window.UI.escape(p.name)}<br><small class="muted">${window.UI.escape(p.slug)}</small></td>
               <td>${window.UI.fmt(p.price)}</td>
-              <td>${p.stock}</td>
+              <td>${(window.APP_CONFIG && window.APP_CONFIG.stockInfinite) ? '∞' : p.stock}</td>
               <td><span class="badge ${p.status}">${window.UI.escape(p.status || 'active')}</span></td>
               <td>
                 <button class="btn btn-ghost" data-edit="${p.id}">Editar</button>

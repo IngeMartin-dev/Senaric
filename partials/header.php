@@ -44,7 +44,8 @@ $appName   ??= (string) Env::get('APP_NAME', 'Tienda de Artesanías');
       baseUrl: <?= json_encode(rtrim((string)($appUrl ?? ''), '/')) ?>,
       apiBase: <?= json_encode(rtrim((string)($appUrl ?? ''), '/') . '/api') ?>,
       csrfToken: <?= json_encode($csrfToken ?? '') ?>,
-      name: <?= json_encode($appName ?? 'Tienda de Artesanías') ?>
+      name: <?= json_encode($appName ?? 'Tienda de Artesanías') ?>,
+      stockInfinite: <?= Env::bool('STOCK_INFINITE') ? 'true' : 'false' ?>
     };
   </script>
 </head>

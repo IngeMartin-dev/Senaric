@@ -60,6 +60,7 @@
   /* --------------------------- Página de carrito ----------------------- */
 
   function maxQty(item) {
+    if (window.APP_CONFIG && window.APP_CONFIG.stockInfinite) return 99;
     const stock = Number(item.stock);
     return Number.isFinite(stock) && stock > 0 ? Math.min(99, stock) : 99;
   }

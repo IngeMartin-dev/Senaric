@@ -67,6 +67,25 @@ final class Env
         self::$loaded = true;
     }
 
+    /**
+     * Lee una variable de entorno como booleana.
+     * Acepta true/false, 1/0, on/off, yes/no.
+     */
+    public static function bool(string $key, bool $default = false): bool
+    {
+        $value = self::get($key, $default);
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return in_array(strtolower(trim($value)), ['1', 'true', 'on', 'yes', 'si'], true);
+        }
+
+        return (bool) $value;
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
         if (!self::$loaded) {

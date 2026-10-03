@@ -62,7 +62,10 @@ require __DIR__ . '/partials/header.php';
       node.querySelector('[data-name]').textContent = p.name;
       node.querySelector('[data-cat]').textContent = (p.categories && p.categories.name) || '';
       node.querySelector('[data-price]').textContent = window.UI.fmt(p.price);
-      node.querySelector('[data-stock]').textContent = (p.stock > 0) ? `Stock disponible: ${p.stock}` : 'Sin stock';
+      const infiniteStock = !!(window.APP_CONFIG && window.APP_CONFIG.stockInfinite);
+      node.querySelector('[data-stock]').textContent = infiniteStock
+        ? 'Disponible'
+        : ((p.stock > 0) ? `Stock disponible: ${p.stock}` : 'Sin stock');
       node.querySelector('[data-short]').textContent = p.short_description || '';
       node.querySelector('[data-desc]').textContent = p.description || '';
       target.innerHTML = '';

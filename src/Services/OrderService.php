@@ -35,9 +35,11 @@ final class OrderService
         }
 
         // Validar stock antes de crear el pedido
-        foreach ($totals['items'] as $item) {
-            if ($item['quantity'] > $item['stock']) {
-                throw new HttpException(409, sprintf('No hay suficiente stock para "%s".', $item['name']));
+        if (!CartService::stockIsInfinite()) {
+            foreach ($totals['items'] as $item) {
+                if ($item['quantity'] > $item['stock']) {
+                    throw new HttpException(409, sprintf('No hay suficiente stock para "%s".', $item['name']));
+                }
             }
         }
 
@@ -71,8 +73,10 @@ final class OrderService
         $created = $this->orders->createOrder($order, $itemsPayload);
 
         // Decrementar stock
-        foreach ($totals['items'] as $item) {
-            $this->products->decrementStock($item['product_id'], $item['quantity']);
+        if (!CartService::stockIsInfinite()) {
+            foreach ($totals['items'] as $item) {
+                $this->products->decrementStock($item['product_id'], $item['quantity']);
+            }
         }
 
         CartService::clear();
