@@ -53,14 +53,39 @@
     }[rule] || 'Valor no válido.';
   }
 
+  // Fase de captura: se ejecuta ANTES que el handler propio de cada formulario,
+  // así un formulario inválido no llega a enviarse al servidor.
   document.addEventListener('submit', (e) => {
     const form = e.target;
     if (!(form instanceof HTMLFormElement)) return;
     if (!form.hasAttribute('data-validate-form') && !form.classList.contains('validate')) return;
     const errors = validate(form);
-    if (Object.keys(errors).length) {
+    const names = Object.keys(errors);
+    if (names.length) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       window.UI.toast('Por favor revisa los campos marcados.', 'error');
+      const first = form.querySelector(`[name="${names[0]}"]`);
+      if (first) first.focus();
+    }
+  }, true);
+
+  // Al corregir un campo se quita su error.
+  document.addEventListener('input', (e) => {
+    const el = e.target;
+    if (!(el instanceof HTMLElement) || !el.dataset || !el.dataset.validate) return;
+    const form = el.closest('form');
+    if (!form || !el.closest('.field.has-error')) return;
+    const specs = el.dataset.validate.split('|');
+    const stillBad = specs.some(spec => {
+      const [rule, arg] = spec.split(':');
+      const fn = rules[rule];
+      return fn && !(arg ? fn(el.value, arg) : fn(el.value));
+    });
+    if (!stillBad) {
+      el.closest('.field').classList.remove('has-error');
+      const small = form.querySelector(`[data-error-for="${el.name}"]`);
+      if (small) small.textContent = '';
     }
   });
 

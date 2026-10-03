@@ -23,8 +23,8 @@ require __DIR__ . '/partials/header.php';
       <div><dt>Envío</dt><dd data-shipping>$0 COP</dd></div>
       <div class="cart-total"><dt>Total</dt><dd data-total>$0 COP</dd></div>
     </dl>
-    <a class="btn btn-primary btn-block" href="/checkout.html">Finalizar compra</a>
-    <a class="btn btn-ghost btn-block" href="/productos.html">Seguir comprando</a>
+    <a class="btn btn-primary btn-block" href="/checkout.php">Finalizar compra</a>
+    <a class="btn btn-ghost btn-block" href="/productos.php">Seguir comprando</a>
     <button type="button" class="btn btn-danger btn-block" data-clear-cart>Vaciar carrito</button>
   </aside>
 </section>

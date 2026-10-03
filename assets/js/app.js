@@ -150,11 +150,9 @@
     node.querySelector('[data-cat]').textContent = (product.categories && product.categories.name) || '—';
     node.querySelector('[data-price]').textContent = window.UI.fmt(product.price);
     const btn = node.querySelector('[data-add-to-cart]');
+    // El clic lo maneja el listener delegado de cart.js ([data-add-to-cart]);
+    // registrar otro aquí hacía que cada clic agregara el producto dos veces.
     btn.dataset.productId = product.id;
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.CART.add(product.id, 1);
-    });
     return node;
   }
 

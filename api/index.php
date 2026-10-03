@@ -82,20 +82,21 @@ $router->post('/cart/add', function (Request $req) {
     $pid = Sanitizer::int($req->input('product_id'), 1);
     $qty = Sanitizer::int($req->input('quantity', 1), 1, 99);
     $totals = CartService::add($pid, $qty);
-    return Response::ok($totals);
+    return Response::ok(['items' => $totals['items'], 'totals' => $totals]);
 }, [[Csrf::class, 'middleware']]);
 
 $router->put('/cart/update', function (Request $req) {
     $pid = Sanitizer::int($req->input('product_id'), 1);
     $qty = Sanitizer::int($req->input('quantity'), 0, 99);
     $totals = CartService::update($pid, $qty);
-    return Response::ok($totals);
+    return Response::ok(['items' => $totals['items'], 'totals' => $totals]);
 }, [[Csrf::class, 'middleware']]);
 
 $router->delete('/cart/remove', function (Request $req) {
     $pid = Sanitizer::int($req->query['product_id'] ?? null);
     if ($pid < 1) return Response::error('product_id requerido', 400);
-    return Response::ok(CartService::remove($pid));
+    $totals = CartService::remove($pid);
+    return Response::ok(['items' => $totals['items'], 'totals' => $totals]);
 }, [[Csrf::class, 'middleware']]);
 
 $router->delete('/cart/clear', function () {
@@ -131,8 +132,14 @@ $router->post('/auth/register', function (Request $req) {
     $email = Sanitizer::email($req->input('email'));
     $password = (string) $req->input('password', '');
     $name = Sanitizer::string($req->input('name', ''), 120);
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 8) {
-        return Response::error('Correo inválido o contraseña muy corta (mínimo 8).', 422);
+    if ((function_exists("mb_strlen") ? mb_strlen($name) : strlen($name)) < 2) {
+        return Response::error('Escribe tu nombre (mínimo 2 caracteres).', 422);
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return Response::error('Escribe un correo válido, por ejemplo nombre@correo.com.', 422);
+    }
+    if (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        return Response::error('La contraseña debe tener mínimo 8 caracteres, con al menos una letra y un número.', 422);
     }
     try {
         $res = Auth::registerWithPassword($email, $password, ['name' => $name]);

@@ -12,16 +12,16 @@ require __DIR__ . '/partials/header.php';
       <input type="hidden" name="_csrf" value="">
       <label class="field">
         <span>Correo electrónico</span>
-        <input type="email" name="email" required autocomplete="email" maxlength="254">
+        <input type="email" name="email" required autocomplete="email" maxlength="254" data-validate="required|email" data-error-message="Escribe un correo válido.">
         <small class="error" data-error-for="email"></small>
       </label>
       <label class="field">
         <span>Contraseña</span>
-        <input type="password" name="password" required minlength="8" maxlength="128" autocomplete="current-password">
+        <input type="password" name="password" required maxlength="128" autocomplete="current-password" data-validate="required" data-error-message="Escribe tu contraseña.">
         <small class="error" data-error-for="password"></small>
       </label>
       <button class="btn btn-primary btn-block" type="submit" data-submit>Ingresar</button>
-      <p class="auth-switch">¿No tienes cuenta? <a href="/registro.html">Crea una aquí</a></p>
+      <p class="auth-switch">¿No tienes cuenta? <a href="/registro.php">Crea una aquí</a></p>
     </form>
   </div>
 </section>

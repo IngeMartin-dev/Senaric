@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../Core/Session.php';
 require_once __DIR__ . '/../Core/Sanitizer.php';
+require_once __DIR__ . '/../Core/Auth.php'; // define HttpException
 require_once __DIR__ . '/../Repositories/ProductRepository.php';
 
 require_once dirname(__DIR__) . '/Helpers/view.php';
@@ -26,9 +27,32 @@ final class CartService
     public static function add(int $productId, int $quantity = 1): array
     {
         if ($productId < 1 || $quantity < 1) {
-            throw new InvalidArgumentException('Producto o cantidad inválidos.');
+            throw new HttpException(422, 'Producto o cantidad inválidos.');
         }
+
+        // Validar producto y stock ANTES de modificar el carrito.
+        $product = (new ProductRepository())->find($productId);
+        if (!$product || ($product['status'] ?? 'active') !== 'active') {
+            throw new HttpException(404, 'Este producto ya no está disponible.');
+        }
+        $stock = (int) ($product['stock'] ?? 0);
+
         $items = self::all();
+        $inCart = 0;
+        foreach ($items as $item) {
+            if ((int) $item['product_id'] === $productId) {
+                $inCart = (int) $item['quantity'];
+                break;
+            }
+        }
+        if ($inCart + $quantity > $stock) {
+            throw new HttpException(409, sprintf(
+                'No hay suficiente stock para "%s". Disponible: %d.',
+                (string) ($product['name'] ?? 'este producto'),
+                $stock
+            ));
+        }
+
         $found = false;
         foreach ($items as &$item) {
             if ((int) $item['product_id'] === $productId) {
@@ -43,25 +67,48 @@ final class CartService
         }
         Session::set(self::SESSION_KEY, $items);
 
-        // Validación suave: no superar el stock del producto.
-        $hydrated = self::hydrate();
-        foreach ($hydrated as $line) {
-            if ($line['quantity'] > $line['stock']) {
-                throw new RuntimeException(sprintf('No hay suficiente stock para "%s". Disponible: %d.', $line['name'], $line['stock']));
-            }
-        }
-        return $hydrated;
+        return self::totals();
     }
 
     public static function update(int $productId, int $quantity): array
     {
-        $items = self::all();
-        $items = array_values(array_filter($items, fn($i) => (int) $i['product_id'] !== $productId));
+        $quantity = max(0, $quantity);
+
         if ($quantity > 0) {
-            $items[] = ['product_id' => $productId, 'quantity' => $quantity];
+            $product = (new ProductRepository())->find($productId);
+            if (!$product || ($product['status'] ?? 'active') !== 'active') {
+                throw new HttpException(404, 'Este producto ya no está disponible.');
+            }
+            $stock = (int) ($product['stock'] ?? 0);
+            if ($quantity > $stock) {
+                throw new HttpException(409, sprintf(
+                    'No hay suficiente stock para "%s". Disponible: %d.',
+                    (string) ($product['name'] ?? 'este producto'),
+                    $stock
+                ));
+            }
         }
-        Session::set(self::SESSION_KEY, $items);
-        return self::hydrate();
+
+        // Se actualiza en su posición (sin mover el producto al final de la lista).
+        $out = [];
+        $found = false;
+        foreach (self::all() as $item) {
+            if ((int) $item['product_id'] === $productId) {
+                $found = true;
+                if ($quantity > 0) {
+                    $item['quantity'] = $quantity;
+                    $out[] = $item;
+                }
+                continue;
+            }
+            $out[] = $item;
+        }
+        if (!$found && $quantity > 0) {
+            $out[] = ['product_id' => $productId, 'quantity' => $quantity];
+        }
+
+        Session::set(self::SESSION_KEY, $out);
+        return self::totals();
     }
 
     public static function remove(int $productId): array
@@ -69,7 +116,7 @@ final class CartService
         $items = self::all();
         $items = array_values(array_filter($items, fn($i) => (int) $i['product_id'] !== $productId));
         Session::set(self::SESSION_KEY, $items);
-        return self::hydrate();
+        return self::totals();
     }
 
     public static function clear(): void

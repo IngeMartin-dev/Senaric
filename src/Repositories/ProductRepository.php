@@ -30,11 +30,9 @@ final class ProductRepository
             $opts['eq'] = ['category_id' => (int) $filters['category']];
         }
         if (!empty($filters['search'])) {
-            $opts['or'] = sprintf(
-                '(name.ilike.*%s*,short_description.ilike.*%s*)',
-                rawurlencode((string) $filters['search']),
-                rawurlencode((string) $filters['search'])
-            );
+            // http_build_query ya codifica la URL; quitamos caracteres que rompen la sintaxis de or=(...)
+            $term = trim(str_replace([',', '(', ')', '"', '*', '\\'], ' ', (string) $filters['search']));
+            $opts['or'] = sprintf('(name.ilike.*%s*,short_description.ilike.*%s*)', $term, $term);
         }
         if (array_key_exists('featured', $filters)) {
             $opts['eq'] = array_merge($opts['eq'] ?? [], ['featured' => filter_var($filters['featured'], FILTER_VALIDATE_BOOL) ? 'true' : 'false']);

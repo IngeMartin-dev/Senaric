@@ -60,6 +60,17 @@ final class Supabase
     }
 
     /**
+     * Convierte un valor a texto válido para un filtro PostgREST.
+     */
+    private static function filterValue(mixed $val): string
+    {
+        if (is_bool($val)) {
+            return $val ? 'true' : 'false';
+        }
+        return (string) $val;
+    }
+
+    /**
      * SELECT — equivalente a SELECT ... FROM tabla
      * @param array $opts ['select'=>..., 'eq'=>['col'=>'val'], 'order'=>'col.asc', 'limit'=>int, 'offset'=>int]
      */
@@ -74,8 +85,8 @@ final class Supabase
         foreach (['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'like', 'ilike', 'in'] as $op) {
             if (!empty($opts[$op]) && is_array($opts[$op])) {
                 foreach ($opts[$op] as $col => $val) {
-                    $key = $col . '.' . $op;
-                    $query[$key] = is_array($val) ? '(' . implode(',', array_map('strval', $val)) . ')' : (string) $val;
+                    // PostgREST espera: columna=operador.valor  (ej. id=eq.1)
+                    $query[$col] = $op . '.' . (is_array($val) ? '(' . implode(',', array_map('strval', $val)) . ')' : self::filterValue($val));
                 }
             }
         }
@@ -141,7 +152,7 @@ final class Supabase
         foreach (['eq', 'neq'] as $op) {
             if (!empty($filters[$op]) && is_array($filters[$op])) {
                 foreach ($filters[$op] as $col => $val) {
-                    $query[$col . '.' . $op] = (string) $val;
+                    $query[$col] = $op . '.' . self::filterValue($val);
                 }
             }
         }
@@ -165,7 +176,7 @@ final class Supabase
         foreach (['eq'] as $op) {
             if (!empty($filters[$op]) && is_array($filters[$op])) {
                 foreach ($filters[$op] as $col => $val) {
-                    $query[$col . '.' . $op] = (string) $val;
+                    $query[$col] = $op . '.' . self::filterValue($val);
                 }
             }
         }
@@ -226,11 +237,12 @@ final class Supabase
 
         $response = curl_exec($ch);
         $errno = curl_errno($ch);
+        $curlError = curl_error($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($errno !== 0 || $response === false) {
-            throw new RuntimeException('Error de red al consultar Supabase.');
+            throw new RuntimeException('Error de red al consultar Supabase: ' . $curlError);
         }
 
         $decoded = json_decode((string) $response, true);

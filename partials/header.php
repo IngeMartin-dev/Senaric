@@ -1,7 +1,24 @@
 <?php
+/**
+ * Header compartido.
+ *
+ * Es autosuficiente: carga sus propias dependencias (helper e(), Env, CSRF)
+ * y define las variables comunes si la página se abrió directamente
+ * (p. ej. /contacto.php con `php -S`) sin pasar por index.php.
+ */
+require_once dirname(__DIR__) . '/src/Config/env.php';
+require_once dirname(__DIR__) . '/src/Core/Session.php';
+require_once dirname(__DIR__) . '/src/Core/Csrf.php';
+require_once dirname(__DIR__) . '/src/Helpers/view.php';
+
+date_default_timezone_set((string) Env::get('APP_TIMEZONE', 'America/Bogota'));
+
 /** @var string $csrfToken */
 /** @var string $appName */
 /** @var string $appUrl */
+$csrfToken ??= Csrf::token();
+$appUrl    ??= (string) Env::get('APP_URL', '');
+$appName   ??= (string) Env::get('APP_NAME', 'Tienda de Artesanías');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -19,9 +36,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <title><?= e($pageTitle ?? $appName ?? 'Tienda de Artesanías') ?></title>
   <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
-  <link rel="stylesheet" href="/assets/css/main.css">
-  <link rel="stylesheet" href="/assets/css/components.css">
-  <link rel="stylesheet" href="/assets/css/responsive.css">
+  <link rel="stylesheet" href="<?= e(asset_v('/assets/css/main.css')) ?>">
+  <link rel="stylesheet" href="<?= e(asset_v('/assets/css/components.css')) ?>">
+  <link rel="stylesheet" href="<?= e(asset_v('/assets/css/responsive.css')) ?>">
   <script>
     window.APP_CONFIG = {
       baseUrl: <?= json_encode(rtrim((string)($appUrl ?? ''), '/')) ?>,

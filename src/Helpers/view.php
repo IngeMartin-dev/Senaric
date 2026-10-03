@@ -40,6 +40,19 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('asset_v')) {
+    /**
+     * Ruta de un archivo estático con versión (fecha de modificación) para que
+     * el navegador nunca use una copia vieja en caché tras editar CSS/JS.
+     */
+    function asset_v(string $path): string
+    {
+        $file = dirname(__DIR__, 2) . '/' . ltrim($path, '/');
+        $v = is_file($file) ? (int) filemtime($file) : time();
+        return $path . '?v=' . $v;
+    }
+}
+
 if (!function_exists('storage_url')) {
     /**
      * URL pública de un archivo en Supabase Storage.

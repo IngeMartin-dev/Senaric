@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/src/Helpers/view.php';
 /** @var string $appName */
 ?>
   </main>
@@ -18,10 +19,10 @@
     </div>
   </footer>
   <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
-  <script src="/assets/js/api.js" defer></script>
-  <script src="/assets/js/ui.js" defer></script>
-  <script src="/assets/js/cart.js" defer></script>
-  <script src="/assets/js/validator.js" defer></script>
-  <script src="/assets/js/app.js" defer></script>
+  <script src="<?= e(asset_v('/assets/js/api.js')) ?>" defer></script>
+  <script src="<?= e(asset_v('/assets/js/ui.js')) ?>" defer></script>
+  <script src="<?= e(asset_v('/assets/js/cart.js')) ?>" defer></script>
+  <script src="<?= e(asset_v('/assets/js/validator.js')) ?>" defer></script>
+  <script src="<?= e(asset_v('/assets/js/app.js')) ?>" defer></script>
 </body>
 </html>
