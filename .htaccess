@@ -1,0 +1,73 @@
+# =====================================================================
+# Tienda de Artesanías — Apache config
+# =====================================================================
+
+# Forzar UTF-8
+AddDefaultCharset UTF-8
+
+# No servir archivos dotfiles
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Denegar acceso a carpetas sensibles
+RedirectMatch 404 /\.env
+RedirectMatch 404 /\.env\..*
+RedirectMatch 404 /\.git
+RedirectMatch 404 /storage
+RedirectMatch 404 /src
+
+# Desactivar firma del servidor (no revelar software)
+ServerSignature Off
+
+# Cabeceras de seguridad
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set Content-Security-Policy "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://lxkefzsobelxxqvamiwp.supabase.co; frame-ancestors 'self';"
+</IfModule>
+
+# Compresión
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml
+</IfModule>
+
+# Caché para assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
+
+# Reescritura: archivos reales se sirven, todo lo demás va al front controller
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Permitir acceso directo a archivos y carpetas reales (assets, css, js, img, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Rutas API -> api/index.php (router)
+    RewriteRule ^api(/.*)?$ api/index.php [L,QSA]
+
+    # Resto -> index.php (front controller)
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Configuración PHP segura
+<IfModule mod_php.c>
+    php_flag display_errors off
+    php_value upload_max_filesize 8M
+    php_value post_max_size 8M
+    php_flag session.cookie_httponly on
+    php_flag session.cookie_secure on
+    php_value session.cookie_samesite "Lax"
+</IfModule>

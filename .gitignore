@@ -1,0 +1,36 @@
+# Entorno — NUNCA subir credenciales reales
+.env
+.env.local
+.env.*.local
+
+# Logs
+storage/logs/*.log
+!storage/logs/.gitkeep
+
+# Caché
+storage/cache/*
+!storage/cache/.gitkeep
+
+# Subidas temporales
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# PHP
+*.php~
+*.php.bak
+
+# IDE / SO
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Node (por si se añaden herramientas de frontend)
+package-lock.json
+node_modules/
+
+# Worktrees locales
+.kilo/
+
+# Archivos de sistema Windows
+desktop.ini
